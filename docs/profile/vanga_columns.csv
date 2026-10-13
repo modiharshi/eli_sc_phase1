@@ -1,0 +1,26 @@
+column,type,origin,null_pct,empty_pct,distinct,samples
+title,VARCHAR,parquet,0.0,0.0,38066,MUNICIPAL CORPORATION OF DELHI versus SUBHAGWANTI & OTHERS | RAMESHBHAI PANDURAO HEDAU versus STATE OF GUJARAT | UNITED BANK OF INDIA versus BISWANATH BHATTACHARJEE
+petitioner,VARCHAR,parquet,0.0,0.04,31245,BALWANT SINGH & ORS. | A. JANARDHANA | RAM NARAIN SINGH
+respondent,VARCHAR,parquet,0.0,0.04,25864,BALWANT SINGH & ORS. | MRS. GRACE COLLIS AND ORS. | FOOD SPECIALITIES LTD.
+description,VARCHAR,parquet,0.0,97.3,1156,"Issue for Consideration Whether the CESTAT fell in error while coming to the con | Issue for Consideration The High Court in the impugned judgment took the view th | Issue for Consideration In the instant appeal, the father of the prosecutrix cha"
+judge,VARCHAR,parquet,0.0,0.04,1729,"JASWANT SINGH | K.S. RADHAKRISHNAN, A.K. SIKRI | R.C. LAHOTI, ASHOK BHAN, ARUN KUMAR"
+author_judge,VARCHAR,parquet,100.0,0.0,0,
+citation,VARCHAR,parquet,0.0,0.0,38371,[1970] 1 S.C.R. 767 | [1989] SUPP. 1 S.C.R. 97 | [2004] SUPP. 4 S.C.R. 145
+case_id,VARCHAR,parquet,0.0,0.35,38124,2022 INSC 1257 | 2002 INSC 26 | 2006 INSC 738
+cnr,VARCHAR,parquet,0.0,0.0,38371,ESCR010000741996 | ESCR010003592006 | ESCR010002031973
+decision_date,VARCHAR,parquet,0.0,0.0,11104,17-11-1986 | 22-08-1991 | 10-08-1981
+disposal_nature,VARCHAR,parquet,0.0,2.48,32,Appeal(s) allowed | Rejected | Leave Granted & Disposed off
+court,VARCHAR,parquet,0.0,0.0,1,Supreme Court of India
+available_languages,VARCHAR,parquet,0.0,2.7,488,"ENG,BEN,HIN,MAL,ORI,PUN,TEL,URD | ENG,ASM,BEN,HIN,KAN,MAL,MAR,ORI,PUN,TEL,URD | ENG,BEN,HIN,MAL,PUN,TEL,URD"
+raw_html,VARCHAR,parquet,0.0,0.0,43076,<select class='form-select form-select-sm me-2' id='language595' name='language' | <select class='form-select form-select-sm me-2' id='language33' name='language'  | <select class='form-select form-select-sm me-2' id='language348' name='language'
+path,VARCHAR,parquet,0.0,0.0,38371,S_2006_5_737_742 | 2005_2_83_87 | S_2002_5_286_294
+nc_display,VARCHAR,parquet,0.0,0.35,38124,2004INSC94 | 2024INSC109 | 1965INSC278
+scraped_at,VARCHAR,parquet,0.0,0.0,43552,2025-06-13T21:27:03.413837 | 2025-06-13T21:17:08.696786 | 2025-06-13T10:57:21.906956
+year,BIGINT,hive partition,0.0,0.0,77,1985 | 1971 | 1950
+html_case_no,VARCHAR,raw_html,0.0,0.0,37670,CIVIL APPEAL No. 2414/1996 | CIVIL APPEAL No. 237/1999 | CIVIL APPEAL No. 6144/2010
+html_bench,VARCHAR,raw_html,0.0,0.0,12,9 Judges | Judges | 8 Judges
+html_decision_date,VARCHAR,raw_html,0.0,0.0,11104,17-11-1986 | 22-08-1991 | 10-08-1981
+html_disposal,VARCHAR,raw_html,2.48,0.0,31,Appeal(s) allowed | Rejected | Leave Granted & Disposed off
+html_coram,VARCHAR,raw_html,0.04,0.0,6502,"K.S. RADHAKRISHNAN, A.K. SIKRI | R.C. LAHOTI, ASHOK BHAN, ARUN KUMAR | D.P. MOHAPATRA, K.G. BALAKRISHNAN"
+html_headnote,VARCHAR,raw_html,0.06,0.0,38334,"y, STATE OF MAHARASHTRA April 30, 1n1 [K. S. HEGDE AND A. N. GROVER, JJ.l Code o | Suit &ndash; Respondent No.1(since dead) filed suit against the appellants inter | Code of Civil Procedure, 1908: O.JX Rule 13, O.XY R. 7. O.X&yen;1 R .. 22 and Ru"
+parsed_date,DATE,derived,0.0,0.0,11104,2017-07-14 | 1960-12-05 | 2007-05-10

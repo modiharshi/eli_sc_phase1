@@ -1,0 +1,83 @@
+{
+  "rows": 43552,
+  "distinct_path": 38371,
+  "json_files": 43552,
+  "json_distinct_names": 38371,
+  "paths_only_in_parquet": 0,
+  "paths_only_in_json": 0,
+  "duplicate_rows_same_path": 5181,
+  "duplicate_path_pattern": [
+    {
+      "copies": 2,
+      "years": 2,
+      "decision_dates": 1,
+      "content_variants": 1,
+      "paths": 5181
+    }
+  ],
+  "duplicates_where_one_copy_is_decision_year": 5181,
+  "unparseable_decision_date": 0,
+  "html_date_differs_from_column": 0,
+  "year_partition_ne_decision_year_rows": 5181,
+  "year_partition_ne_decision_year_distinct_paths": 0,
+  "year_off_by_more_than_1_rows": 44,
+  "decision_date_range": [
+    "1950-03-14",
+    "2026-09-01"
+  ],
+  "suspicious_dates_before_1950_or_future": 0,
+  "same_nc_multiple_paths": 96,
+  "same_nc_multiple_decision_dates": 70,
+  "same_case_no_multiple_decision_dates": 491,
+  "same_title_and_date_multiple_paths": 27,
+  "case_id_equals_nc_display": 43552,
+  "path_prefix_S_supplementary": 7642,
+  "path_like_judis": 1,
+  "path_like_jonew": 0,
+  "author_marked_in_html": 33469,
+  "author_judge_column_nonnull": 0,
+  "citation_has_scr": 38371,
+  "citation_has_scc_or_air": 0,
+  "bench_strength_distribution": {
+    "2 Judges": 27839,
+    "3 Judges": 7945,
+    "5 Judges": 1973,
+    "4 Judges": 305,
+    "1 Judge": 108,
+    "7 Judges": 86,
+    "6 Judges": 56,
+    "Judges": 30,
+    "9 Judges": 18,
+    "11 Judges": 5,
+    "8 Judges": 5,
+    "13 Judges": 1
+  },
+  "disposal_top": {
+    "Appeal(s) allowed": 14428,
+    "Dismissed": 14159,
+    "Disposed off": 4951,
+    "Case Partly allowed": 1895,
+    "": 975,
+    "Case Allowed": 793,
+    "Directions issued": 348,
+    "Matter referred to larger bench": 186,
+    "Leave Granted & Allowed": 148,
+    "Reference answered": 116,
+    "Hearing Adjourned": 111,
+    "Leave Granted & Dismissed": 43,
+    "Leave Granted & Disposed off": 41,
+    "Remitted to Lower Court": 31,
+    "Leave granted": 25
+  },
+  "languages_top": {
+    "ENG,HIN,PUN": 23528,
+    "ENG,BEN,HIN,PUN": 2663,
+    "ENG,HIN,PUN,TAM": 1801,
+    "": 1158,
+    "ENG,GUJ,HIN,PUN": 1049,
+    "ENG,PUN": 596,
+    "ENG,HIN,MAL,PUN": 527,
+    "ENG,HIN,MAR,PUN": 304
+  },
+  "manifest_objects": 231
+}

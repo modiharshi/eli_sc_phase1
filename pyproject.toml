@@ -9,4 +9,6 @@ dependencies = [
     "pyarrow>=17",
     "psycopg[binary]>=3.2",
     "huggingface_hub>=0.25",
+    "numpy>=2.4.6",
+    "pandas>=3.0.6",
 ]
