@@ -24,10 +24,27 @@ Each entry says what the prompt assumed, what the real data showed, and what was
 | D7 | Same judgment under more than one decision date. | Not found within a path (0). 70 INSC ids carry several dates, but they are separate reports sharing one INSC id (96 ids, a different citation for every one). | INSC id is not a unique key in Vanga; match on INSC id plus citation, review queue for the rest. |
 | D8 | Vanga is one row per judgment. | 43,552 rows for 38,371 distinct `path`. All 5,181 duplicated paths are copies filed under two `year=` folders. | Keep the copy whose partition year equals its decision-date year. This selects exactly one copy for every duplicated path (verified). Copies differ only in `raw_html`, `available_languages` and `scraped_at`. |
 | D9 | Match tier 1 is diary number plus year, or PDF path / `source_url`. | No diary number, no PDF path or `source_url` on the Vaquill side. | Tier 1 becomes the normalised INSC `case_id` (space to underscore) plus citation. Tiers 2 and 3 are re-assessed in Stage 3 once the data is loaded. |
-| D10 | Vanga has `citation_year`? (not in the prompt) | Every JSON file has a `citation_year` field that the parquet drops. | Load it from the raw JSON into `source_vanga_raw`. |
+| D10 | (not in the prompt) Vanga JSON has a `citation_year` the parquet lacks. | Present in every JSON file; **identical to the parquet `year` column on all 43,552 rows**, so it carries no extra information. | Kept inside `source_vanga_raw.raw` for completeness. |
 | D11 | 152 Vanga rows have an empty `case_id` and `nc_display`. | None match Vaquill on title plus date. | They are keyed on `path`. They stay Vanga-only. |
 | D12 | `text_original` holds the original text. | Identical to `text` on all 1,113,313 rows. Every chunk starts with a `Case: ... Section: ...` header added by Vaquill. | Keep `text_original` as delivered (nothing is dropped). Strip the header when assembling `judgment_text`. |
 | D13 | `bench_strength` could be an independent field. | It always equals `len(judges)` in Vaquill. | Store it, but flag it as derived. |
+
+## Stage 3 decisions (from the review of the Stage 2 comparison)
+
+| # | Decision | Why |
+|---|---|---|
+| S1 | Vanga is the canonical source; Vaquill enriches with full text, judges list and language-specific chunks. | Review decision 1. Vaquill is a subset of Vanga by judgment coverage. |
+| S2 | `judgment_id` = uuid5 of the Vanga `path` (fixed namespace). | Stable across rebuilds, no sequence state, one id per distinct report. |
+| S3 | Matching key is normalised INSC id plus citation, confirmed by decision date. Anything else is queued, not merged. | Review decision 2. INSC ids are shared by 96 distinct reports. |
+| S4 | Folder-year rule removes the 5,181 misfiled duplicate rows from the canonical set. All raw rows stay in `source_vanga_raw`. | Review decision 3. |
+| S5 | `decision_year` = year of the parsed decision date, enforced by a CHECK. Both source `year` fields are kept. Source-year disagreements are logged as `source_year` conflicts with one fixed rule. | Review decision 3. |
+| S6 | `text_status` (`english` / `translation_only` / `none`) and `judgment_language` separate "no English text" from "no text at all". Judgments without text are kept with full metadata. | Review decision 4. |
+| S7 | Chunk key is (`judgment_id`, `language_code`, `chunk_index`). `judgment_chunk.text` keeps the `Case: ... Section: ...` header; it is removed only in `judgment_text`. | Review decision 5. |
+| S8 | Chunks are placed by `char_start` offset when assembling text, not concatenated. | In a 300-case sample about 79% of neighbouring chunk windows overlap and about 21% leave a gap (the sampled gaps were 2 characters), so plain concatenation would duplicate text. Gap sizes are measured over all data in the build (`small_gap_count`, `large_gap_count`). |
+| S9 | Case-level Vaquill metadata is stored once per case in `source_vaquill_raw` instead of on every chunk row; `text_original` is NULL where it equals `text`. | Both are lossless (metadata constant per case: 0 exceptions; `text_original` equal to `text` on 100% of rows) and avoid duplicating about 4 GB of text. Asserted at every build. Easy to reverse if you want the columns repeated. |
+| S10 | `case_number`, `diary_number`, `pdf_url` are NULL columns; Vanga `description` (OCR junk) is not used. | Review decision 6. |
+| S11 | `bench_strength` is derived from the chosen judges list, with provenance `derived`. | Vaquill's own value is `len(judges)`; Vanga has none. |
+| S12 | Postgres is not loaded and no secondary indexes are built in this stage. The migrations were checked on a scratch PostgreSQL 16 only. | Review boundary: schema, transformation and validation first. |
 
 ## Open questions for the user
 
