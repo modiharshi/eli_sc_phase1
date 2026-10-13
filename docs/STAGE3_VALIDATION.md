@@ -1,6 +1,6 @@
 # Stage 3 validation report
 
-Build `b2edb7915b851`, validated 2026-10-13 20:22 UTC by `pipeline/06_validate_stage3.py`. Every check below is computed from `build/*.parquet` and, where noted, re-derived independently from the raw files.
+Build `b2edb7915b851`, validated 2026-10-13 23:00 UTC by `pipeline/06_validate_stage3.py`. Every check below is computed from `build/*.parquet` and, where noted, re-derived independently from the raw files.
 
 **Result: 41 PASS, 3 EXCEPTION (explained), 0 FAIL, 5 informational / not run.**
 
@@ -39,7 +39,7 @@ Build `b2edb7915b851`, validated 2026-10-13 20:22 UTC by `pipeline/06_validate_s
 | E6 | assembled length vs the last chunk's char_end | INFO | equal for 134,828 texts, different for 328 (mean absolute difference 9.4 characters) |
 | E7 | no empty assembled texts | PASS | 0 empty |
 | E8 | positional check: in 1,500 sampled complete texts, every chunk body sits at its char_start in the assembled text | PASS | 0 of 1500 sampled texts failed |
-| F1 | text_status reconciles: english + translation_only = matched judgments; none = unmatched | PASS | {'english': 35596, 'translation_only': 1418, 'none': 1357} |
+| F1 | text_status reconciles: english + translation_only = matched judgments; none = unmatched | PASS | {'english': 35596, 'none': 1357, 'translation_only': 1418} |
 | F2 | 'no English text' is distinct from 'no text at all' (none => no texts; translation_only => texts but no English; english => has English) | PASS | violations: none-with-text 0, translation-with-English 0, english-without-English 0 |
 | F3 | metadata is complete for judgments without usable full text (searchable by metadata) | PASS | 2,775 of 2,775 judgments without English text have title, date and citation |
 | F4 | language sets whose chunk count differs from total_chunks (same sets as D6) | INFO | 0 |
@@ -56,7 +56,7 @@ Build `b2edb7915b851`, validated 2026-10-13 20:22 UTC by `pipeline/06_validate_s
 | H6 | identifiers unique on (type, value, judgment_id) | PASS | 0 duplicates |
 | H7 | judgment_judge rows by source | INFO | vaquill 42,841, vanga 1,564 |
 | I1 | rebuilding from the same raw files gives identical table contents | PASS | 12/12 tables identical |
-| J1 | every column written to build/*.parquet exists in the migration DDL (checked against a scratch PostgreSQL 16) | PASS | 22 tables inspected |
+| J1 | every column written to build/*.parquet exists in the migrated PostgreSQL schema | PASS | 24 tables inspected |
 
 ## Match outcomes (judgment_source_map)
 

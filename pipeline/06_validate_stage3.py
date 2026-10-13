@@ -322,23 +322,22 @@ else:
 
 # ====================================================================== J. schema alignment with the migrations
 try:
-    ddl = subprocess.run(["psql", "-h", "127.0.0.1", "-p", "54329", "-U", "postgres", "-At", "-F", "|", "-c",
-                          "select table_name, column_name from information_schema.columns where table_schema = 'public'"],
-                         capture_output=True, text=True, timeout=20)
-    cols = {}
-    for line in ddl.stdout.splitlines():
-        t, c = line.split("|")
-        cols.setdefault(t, set()).add(c)
+    sys.path.insert(0, str(ROOT / "pipeline"))
+    import pgconn
+    with pgconn.connect("admin", autocommit=True) as pgc:
+        cols = {}
+        for t, c in pgc.execute("select table_name, column_name from information_schema.columns where table_schema = 'public'").fetchall():
+            cols.setdefault(t, set()).add(c)
     probs = []
     for t in ["judgment", "judgment_source_map", "judgment_field_provenance", "field_conflicts", "match_review_queue", "judgment_judge", "judgment_identifier",
               "judgment_language", "judgment_chunk", "judgment_text", "source_vanga_raw", "source_vaquill_raw"]:
         pc = {r[0] for r in q(f"describe {t}")}
         extra = pc - cols.get(t, set())
         if extra:
-            probs.append(f"{t}: parquet columns not in DDL {sorted(extra)}")
-    check("J1", "every column written to build/*.parquet exists in the migration DDL (checked against a scratch PostgreSQL 16)", not probs and bool(cols), "; ".join(probs) or f"{len(cols)} tables inspected")
+            probs.append(f"{t}: parquet columns not in the database {sorted(extra)}")
+    check("J1", "every column written to build/*.parquet exists in the migrated PostgreSQL schema", not probs and bool(cols), "; ".join(probs) or f"{len(cols)} tables inspected")
 except Exception as exc:  # noqa
-    results.append(("J1", "schema alignment with migrations", "NOT RUN", f"scratch PostgreSQL not reachable ({exc.__class__.__name__})"))
+    results.append(("J1", "schema alignment with migrations", "NOT RUN", f"PostgreSQL not reachable ({exc.__class__.__name__})"))
 
 # ====================================================================== K. samples across eras
 random.seed(7)

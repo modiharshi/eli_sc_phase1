@@ -101,3 +101,25 @@ Vanga rows with no match keep `match_method` `none:empty_insc_id` (152 rows have
 | J schema | every Parquet column exists in the migration DDL (scratch PostgreSQL 16) |
 
 A check ends as PASS, FAIL, or EXCEPTION (a measured deviation with a written explanation). The script exits non-zero on any FAIL.
+
+## 5. Stage 4 additions and how to reconstruct the source rows
+
+Schema changes since this document was approved are additive (`db/migrations/0006_text_quality.sql`, `0007_indexes.sql`):
+
+* `judgment_text` gains `chunks_contiguous`, `offset_drift_chunks` and `incompleteness_reason` (`complete`, `missing_chunks`, `text_gap`, `missing_chunks_and_text_gap`), with a CHECK that ties them to `is_complete` and `large_gap_count`. Completeness, overlap disagreement (`overlap_mismatches`) and offset drift are independent columns and independent of language availability (`judgment_language`).
+* `judgment_retrieval_status` (view): one row per judgment with language availability and English text quality side by side.
+* `text_sanitization_log`: every text value in which NUL was replaced (see below).
+* Secondary indexes and the stored `judgment_text.tsv_en` full-text column (migration 0007, chosen by measurement).
+
+Reconstruction rules (the database is lossless relative to the Vaquill parquet except for the NUL substitution below):
+
+| to recover | rule |
+|---|---|
+| a raw Vaquill row | case-level columns from `source_vaquill_raw.raw` (JSON) joined on `vaquill_case_id`, chunk columns from `judgment_chunk` |
+| `text_original` | equals `text` wherever it is NULL (asserted at build time for every row; 0 rows differ) |
+| a chunk's original `text` with NUL bytes | for rows listed in `text_sanitization_log`, replace every U+2400 with U+0000. U+2400 occurs nowhere else in the data (checked), so no position list is needed |
+| a raw Vanga row | `source_vanga_raw.raw` (JSON of the 18 parquet columns plus `citation_year`), keyed by `(year_folder, path)`; misfiled duplicates are kept with `is_canonical_copy = false` |
+| assembled text | `judgment_text.text` was built from `judgment_chunk` by the rules in section 3.7; it is never edited, and the header-free text can be rebuilt from the chunks to check it |
+| why a text is incomplete | `incompleteness_reason`, `large_gap_count`, `chunks_contiguous` |
+
+Nothing in Stage 4 repairs missing chunks, gaps, overlap disagreements or offset drift. They are exposed, not fixed.

@@ -46,7 +46,26 @@ Each entry says what the prompt assumed, what the real data showed, and what was
 | S11 | `bench_strength` is derived from the chosen judges list, with provenance `derived`. | Vaquill's own value is `len(judges)`; Vanga has none. |
 | S12 | Postgres is not loaded and no secondary indexes are built in this stage. The migrations were checked on a scratch PostgreSQL 16 only. | Review boundary: schema, transformation and validation first. |
 
+## Stage 4 decisions (load, constraints, indexes)
+
+| # | Decision | Why |
+|---|---|---|
+| S13 | **NUL characters.** The raw Vaquill data has U+0000 in 37 chunks (36 Hindi, 1 Malayalam; 10 judgments, none English), which PostgreSQL text cannot store. In the database copy each NUL is replaced one-for-one by U+2400 (`␀`); every changed value is listed in `text_sanitization_log` (47 rows: 37 chunks, 10 assembled texts). Raw Parquet and the Stage 3 build output keep the original bytes. | Found by the loader's pre-check before anything was written. A length-preserving, logged, reversible substitution keeps offsets valid and avoids dropping data. It is the only place where the database text differs from the build output. The fingerprint check hashes the database against the parquet with the same replacement applied. **Open for review.** |
+| S14 | Migration `0006_text_quality.sql` adds `chunks_contiguous`, `offset_drift_chunks` and `incompleteness_reason` to `judgment_text`, the `judgment_retrieval_status` view and the `text_sanitization_log` table. Migrations 0001 to 0005 are unchanged. | Review decisions 3 and 5: completeness, overlap disagreement and offset drift are tracked per text, separately from language availability, and are visible to retrieval and evaluation. The build was extended to produce the columns; two builds were identical. |
+| S15 | The 277 vs 276 discrepancy: **277 is the number of incomplete text sets** (verified build output and database). 276 counted only sets with a text gap larger than 2 characters; one more set has missing chunks without a gap. Reconciled in the Stage 4 report with exact set arithmetic. | Review decision 4. |
+| S16 | Local PostgreSQL 16 on port 5433, 127.0.0.1 only, password authentication, roles `eli_admin` and `eli_readonly`, `wal_level = minimal`. The load is one transaction. Backups are `pg_dump`. | Localhost deployment (E1). Minimal WAL makes the bulk load faster and keeps WAL from filling the 22 GB of free disk. |
+| S17 | Legislation (`legislation_act` 1,568 rows, `legislation_section` 74,484 rows) is loaded from the Vaquill file. Act-level columns were checked to be constant per act, so nothing is lost. | These tables were part of the approved schema and the Stage 3 plan said they load in Stage 4. It is not an alternate judgment text source. |
+| S18 | Secondary indexes are chosen by measurement: each candidate is built alone, its size and build time recorded, and it is kept only if an affected query gets at least 3x and at least 5 ms faster at p50, or it fixes a missed target. Everything measured, including dropped candidates, is in the Stage 4 report. | Review decision 6: no speculative indexes. Two borderline drops are noted in the report. |
+| S19 | English full-text search uses a stored `judgment_text.tsv_en` tsvector column with a GIN index. An index on the expression `to_tsvector('english', text)` was built and measured too; ranked queries on it took 10 to 165 s. **Only English is indexed.** Other languages have no full-text index and no search configuration. | Measured: see the Stage 4 report. Non-English retrieval is out of scope for this stage. |
+| S20 | Search behaviour limits are visible, not repaired: incomplete sets, overlap disagreements and offset drift stay as delivered and are exposed through `judgment_text` and `judgment_retrieval_status`. | Review decision 3. |
+
 ## Open questions for the user
 
-- With Vaquill a strict subset of Vanga (0 Vaquill-only judgments, near-total field agreement), the merge mostly attaches Vaquill's full text and judges list to Vanga's records. Confirm that is the intended shape before Stage 3.
-- Vanga has 1,109 judgments with no Vaquill record (mostly 2025 to 2026 and the 2008 and 2006 gaps). They get no full text until another source is found.
+Settled in review: the merge shape (Vanga canonical, Vaquill enriches) and the storage optimisations. Still open after Stage 4:
+
+1. **NUL substitution (S13).** The database copy of 37 chunks and 10 texts (Hindi and Malayalam, no English) has NUL replaced by U+2400. Accept, or choose another treatment (for example drop those chunks from the database, or store them escaped).
+2. **`title_fuzzy` misses its 300 ms target at p95** (326 ms; p50 197 ms). Options: raise the similarity threshold for title search, route fuzzy party search to petitioner and respondent, or accept it.
+3. **Borderline indexes (S18).** `identifier_by_judgment` was kept and `identifier_by_value` dropped on a 5 ms threshold that the measurements straddle. Both are a few MB; tell me if you want a different rule.
+4. **English only.** Only English text has a full-text index. Hindi, Punjabi and the other languages (99,560 texts) are loaded and checkable but not searchable by full text.
+5. **Retrieval defaults.** Whether ranked search should show, down-weight or exclude the 112 English texts with an issue (incomplete, overlap disagreement or offset drift) is a product choice; the flags are available in `judgment_retrieval_status`.
+6. **Judgments without text.** 1,357 judgments have no Vaquill text at all and 1,418 only translations. They are findable by metadata only until another source is considered (not started, per instruction).

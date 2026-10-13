@@ -281,6 +281,7 @@ schema = pa.schema([
     ("judgment_id", pa.string()), ("language_code", pa.string()), ("text", pa.string()), ("text_source", pa.string()),
     ("chunk_count", pa.int32()), ("expected_chunks", pa.int32()), ("char_length", pa.int32()), ("is_complete", pa.bool_()),
     ("small_gap_count", pa.int32()), ("large_gap_count", pa.int32()), ("overlap_mismatches", pa.int32()),
+    ("chunks_contiguous", pa.bool_()), ("offset_drift_chunks", pa.int32()), ("incompleteness_reason", pa.string()),
 ])
 writer = pq.ParquetWriter(str(TMP / "judgment_text.parquet"), schema, compression="zstd")
 pf = pq.ParquetFile(str(TMP / "judgment_chunk.parquet"))
@@ -301,7 +302,10 @@ def flush_group():
     contiguous = idxs == list(range(len(idxs))) and len(idxs) == expected
     complete = contiguous and st["large"] == 0
     lang = cur_key[1]
-    buf.append((cur_key[0], lang, text, "vaquill", len(chunks), expected, len(text), complete, st["small"], st["large"], st["mismatch"]))
+    reason = ("complete" if complete else "missing_chunks_and_text_gap" if (not contiguous and st["large"] > 0)
+              else "missing_chunks" if not contiguous else "text_gap")
+    buf.append((cur_key[0], lang, text, "vaquill", len(chunks), expected, len(text), complete, st["small"], st["large"], st["mismatch"],
+                contiguous, st["drift"], reason))
     totals["sets"] += 1
     for k in ("small", "large", "mismatch", "mismatch_ws", "drift", "nohdr"):
         totals[k] += st[k]
@@ -314,6 +318,8 @@ def flush_group():
     by_lang[lang]["sets"] += 1
     by_lang[lang]["incomplete_sets"] += 0 if complete else 1
     by_lang[lang]["non_contiguous_sets"] += 0 if contiguous else 1
+    by_lang[lang]["text_gap_sets"] += 1 if st["large"] > 0 else 0
+    by_lang[lang]["reason_" + reason] += 1
     drift_all.extend(st["drift_abs"])
     cur_key, cur_chunks = None, []
 
