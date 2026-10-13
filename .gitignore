@@ -1,8 +1,8 @@
-raw/
-logs/
-.env
 *.pyc
-__pycache__/
-node_modules/
+.env
 .venv/
+__pycache__/
+logs/
+node_modules/
 pgdata/
+raw/
