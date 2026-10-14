@@ -24,7 +24,8 @@ import pgconn  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 B = ROOT / "build"
 LEG = ROOT / "raw" / "vaquill" / "in_central_legislation.parquet"
-MIGRATIONS = sorted((ROOT / "db" / "migrations").glob("*.sql"))
+# 0007 (indexes) is applied by 09_index_benchmark.py --apply and 0008+ by 11_derive.py, both after the load.
+MIGRATIONS = sorted((ROOT / "db" / "migrations").glob("000[1-6]_*.sql"))
 REBUILD = "--rebuild" in sys.argv
 t_start = time.time()
 

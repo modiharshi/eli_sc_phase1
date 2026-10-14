@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Data explorer{% endblock %}{% block content %}
+<h1>Data explorer</h1><p class="note">Every table, view and materialised view the read-only role can read, taken live from the database catalog. New tables and columns appear automatically. Credential tables ({{ secret|join(', ') }}) are not readable by this role and are not listed.</p>
+<div class="tablewrap"><table><tr><th>Name</th><th>Kind</th><th>Columns</th><th>≈ Rows</th><th>Size</th></tr>
+{% for r in rels %}<tr><td><a href="/explorer/{{r.name}}">{{r.name}}</a></td><td>{{r.kind}}</td><td>{{r.columns}}</td><td>{{ '{:,}'.format(r.est_rows) if r.est_rows >= 0 else '?' }}</td><td>{{r.size}}</td></tr>{% endfor %}</table></div>{% endblock %}

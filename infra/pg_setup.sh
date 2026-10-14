@@ -66,11 +66,20 @@ ALTER ROLE eli_readonly PASSWORD '$RO_PW';
 ALTER ROLE eli_readonly SET default_transaction_read_only = on;
 ALTER ROLE eli_readonly SET statement_timeout = '15s';
 SQL
+# limited write role for the web app (sessions, bookmarks, notes, reviews); see pipeline/11_derive.py
+APP_PW=$(grep -s '^POSTGRES_APP_PASSWORD=' "$ENVF" | cut -d= -f2-)
+if [ -z "$APP_PW" ]; then APP_PW=$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))'); printf '\nPOSTGRES_APP_PASSWORD=%s\n' "$APP_PW" >> "$ENVF"; fi
+$PSQL "psql -p $PORT -Atq -d postgres" <<SQL
+DO \$\$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'eli_app') THEN CREATE ROLE eli_app LOGIN; END IF;
+END \$\$;
+ALTER ROLE eli_app PASSWORD '$APP_PW';
+SQL
 su postgres -c "psql -p $PORT -Atq -d postgres -c \"SELECT 1 FROM pg_database WHERE datname='eli'\"" | grep -q 1 || \
   su postgres -c "psql -p $PORT -q -d postgres -c 'CREATE DATABASE eli OWNER eli_admin'"
 su postgres -c "psql -p $PORT -q -d eli" <<SQL
 REVOKE ALL ON DATABASE eli FROM PUBLIC;
-GRANT CONNECT ON DATABASE eli TO eli_readonly, eli_admin;
+GRANT CONNECT ON DATABASE eli TO eli_readonly, eli_admin, eli_app;
 GRANT USAGE ON SCHEMA public TO eli_readonly;
 ALTER SCHEMA public OWNER TO eli_admin;
 ALTER DEFAULT PRIVILEGES FOR ROLE eli_admin IN SCHEMA public GRANT SELECT ON TABLES TO eli_readonly;

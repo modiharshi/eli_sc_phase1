@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Status{% endblock %}{% block content %}
+<h1>Pipeline and system status</h1>
+<div class="row"><div class="card">Database size<br><strong>{{size}}</strong></div><div class="card">Last backup<br><strong>{{ backup[0] ~ ' · ' ~ backup[1] ~ ' · ' ~ backup[2] ~ ' MB' if backup else 'none yet' }}</strong></div><div class="card">LLM spend<br><strong>${{ '%.2f'|format(spend) }}</strong> of ${{ '%.0f'|format(cap) }} cap</div><div class="card">Host<br><strong>{{host}}</strong> (127.0.0.1 only)</div></div>
+<h2>Pipeline runs</h2><table><tr><th>#</th><th>Stage</th><th>Started</th><th>Finished</th><th>Status</th><th>Detail</th></tr>{% for r in runs %}<tr><td>{{r.run_id}}</td><td>{{r.stage}}</td><td>{{r.started_at}}</td><td>{{r.finished_at}}</td><td>{{r.status}}</td><td>{{ r.detail }} {{ r.row_counts }}</td></tr>{% endfor %}</table>
+<h2>Row counts (planner estimates)</h2><table>{% for c in counts %}<tr><td>{{c.name}}</td><td>{{ '{:,}'.format(c.n) if c.n >= 0 else '?' }}</td></tr>{% endfor %}</table>
+<h2>Largest indexes</h2><table>{% for i in idx %}<tr><td>{{i.indexname}}</td><td>{{i.size}}</td></tr>{% endfor %}</table>{% endblock %}

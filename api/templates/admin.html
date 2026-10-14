@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Admin{% endblock %}{% block content %}
+<h1>Admin</h1>
+<h2>Hide a judgment (takedown)</h2><p class="note">A hidden judgment disappears from search, API, exports and facets; the audit row stays in <code>review_audit</code>. Public takedown form: deferred (localhost only).</p>
+<form method="post" action="/admin/hide" class="row card"><input name="judgment_id" placeholder="judgment id (uuid)" class="grow" required><input name="reason" placeholder="reason" required><button name="action" value="hide">Hide</button><button name="action" value="unhide">Unhide</button></form>
+<table><tr><th>Judgment</th><th>By</th><th>Reason</th><th>When</th></tr>{% for h in hidden %}<tr><td>{{h.title}}<br><code>{{h.judgment_id}}</code></td><td>{{h.hidden_by}}</td><td>{{h.reason}}</td><td>{{h.hidden_at}}</td></tr>{% else %}<tr><td colspan=4>nothing hidden</td></tr>{% endfor %}</table>
+<h2>API keys</h2>{% if new_key %}<div class="banner">New key (shown once): <code>{{new_key}}</code></div>{% endif %}
+<form method="post" action="/admin/key" class="row card"><input name="label" placeholder="label" required><button>Create key</button></form>
+<table><tr><th>#</th><th>Label</th><th>Rate/min</th><th>Created</th><th>Revoked</th><th></th></tr>{% for k in keys %}<tr><td>{{k.key_id}}</td><td>{{k.label}}</td><td>{{k.rate_limit_per_min}}</td><td>{{k.created_at}}</td><td>{{k.revoked_at or ''}}</td><td>{% if not k.revoked_at %}<form method="post" action="/admin/key"><input type="hidden" name="label" value="x"><button name="revoke" value="{{k.key_id}}">Revoke</button></form>{% endif %}</td></tr>{% endfor %}</table>
+<p class="note">REST: <code>GET /api/v1/search?q=…</code>, <code>/api/v1/judgment/{id}</code>, <code>/api/v1/judge/{id}</code>, <code>/api/v1/benches</code>, <code>/api/v1/facets</code> with header <code>X-API-Key</code>.</p>
+{% if usage %}<table><tr><th>Endpoint</th><th>Calls</th><th>Avg ms</th></tr>{% for u in usage %}<tr><td>{{u.endpoint}}</td><td>{{u.n}}</td><td>{{u.ms}}</td></tr>{% endfor %}</table>{% endif %}
+<h2>Users</h2><table><tr><th>#</th><th>Name</th><th>Role</th><th>Last login</th></tr>{% for u in users %}<tr><td>{{u.user_id}}</td><td>{{u.username}}</td><td>{{u.role}}</td><td>{{u.last_login_at}}</td></tr>{% endfor %}</table>
+<h2>Takedown requests</h2><table>{% for t in takedowns %}<tr><td>{{t.request_id}}</td><td>{{t.reason}}</td><td>{{t.status}}</td></tr>{% else %}<tr><td>none</td></tr>{% endfor %}</table>{% endblock %}

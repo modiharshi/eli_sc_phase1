@@ -1,0 +1,27 @@
+:root{--bg:#fff;--fg:#1c2330;--muted:#5d6676;--line:#d9dee6;--card:#f6f8fb;--accent:#1f5fbf;--warn:#9a5b00;--warnbg:#fff4de;--bad:#a12727;--badbg:#fde8e8;--ok:#1d6b3a;--okbg:#e6f5ec;--mark:#fff1a8}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161d;--fg:#e4e8ef;--muted:#9aa4b5;--line:#2b3340;--card:#1a2029;--accent:#7fb0ff;--warn:#f0b35a;--warnbg:#3a2c12;--bad:#ff9a9a;--badbg:#3d1c1c;--ok:#7bd69c;--okbg:#17301f;--mark:#5c4d00}}
+:root[data-theme=dark]{--bg:#12161d;--fg:#e4e8ef;--muted:#9aa4b5;--line:#2b3340;--card:#1a2029;--accent:#7fb0ff;--warn:#f0b35a;--warnbg:#3a2c12;--bad:#ff9a9a;--badbg:#3d1c1c;--ok:#7bd69c;--okbg:#17301f;--mark:#5c4d00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+a{color:var(--accent)}header{border-bottom:1px solid var(--line);background:var(--card)}
+.top{display:flex;gap:12px;align-items:center;padding:8px 16px;flex-wrap:wrap}.brand{font-weight:700;text-decoration:none;color:var(--fg)}
+nav{display:flex;flex-wrap:wrap;gap:2px 4px;flex:1}nav a{padding:4px 8px;border-radius:6px;text-decoration:none;color:var(--fg);font-size:14px}nav a.on,nav a:hover{background:var(--line)}
+main{max-width:1280px;margin:0 auto;padding:16px}footer{border-top:1px solid var(--line);padding:12px 16px;color:var(--muted);font-size:13px;margin-top:32px}
+h1{font-size:22px;margin:.2em 0 .6em}h2{font-size:18px;margin:1.2em 0 .4em}h3{font-size:15px;margin:1em 0 .3em}
+.banner{background:var(--warnbg);color:var(--warn);border:1px solid var(--line);padding:8px 12px;border-radius:8px;margin:8px 0;font-size:14px}
+.note{color:var(--muted);font-size:13px}.unavailable{background:var(--card);border:1px dashed var(--line);padding:12px;border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}th{background:var(--card);position:sticky;top:0}
+.tablewrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:8px}
+input,select,textarea,button{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 8px}button{cursor:pointer;background:var(--card)}button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.layout{display:grid;grid-template-columns:260px 1fr;gap:16px}@media(max-width:800px){.layout{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.facet a{display:flex;justify-content:space-between;text-decoration:none;padding:1px 0;font-size:14px}.facet .on{font-weight:700}
+.badge{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;border:1px solid var(--line);margin-right:4px;background:var(--card);cursor:help}
+.b-clean,.b-ok{background:var(--okbg);color:var(--ok)}.b-fair,.b-warn{background:var(--warnbg);color:var(--warn)}.b-noisy,.b-bad{background:var(--badbg);color:var(--bad)}
+.res{padding:10px 0;border-bottom:1px solid var(--line)}.res .t{font-size:16px;font-weight:600}.snip{color:var(--muted);font-size:14px}mark{background:var(--mark);color:inherit}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line);margin:10px 0}.tabs a{padding:6px 10px;border-radius:6px 6px 0 0;text-decoration:none;color:var(--fg)}.tabs a.on{background:var(--card);border:1px solid var(--line);border-bottom-color:var(--card);font-weight:600}
+pre{white-space:pre-wrap;word-wrap:break-word;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px}.fulltext{white-space:pre-wrap;font-family:Georgia,serif;font-size:16px;line-height:1.6;max-width:90ch}
+.chunkmark{display:block;color:var(--accent);font:12px monospace;border-top:1px dashed var(--line);margin:6px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.grow{flex:1}.pager{display:flex;gap:8px;align-items:center;margin:10px 0}
+.bars .bl{font-size:11px;fill:var(--fg)}.bars .bb{fill:var(--accent)}details summary{cursor:pointer;color:var(--accent);font-size:13px}
+@media(max-width:800px){.top{flex-direction:column;align-items:stretch}nav{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:4px}nav a{white-space:nowrap}main{padding:10px}.tablewrap{max-height:none}}
+.top button{align-self:flex-start}

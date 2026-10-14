@@ -1,0 +1,48 @@
+{% extends "base.html" %}{% from "base.html" import qbadge %}{% block title %}Search{% endblock %}{% block content %}
+<h1>Search judgments</h1>
+<form method="get" action="/search" id="sf">
+<div class="row"><input name="q" value="{{res.q}}" placeholder="words, &quot;exact phrase&quot;, -exclude" class="grow" autofocus>
+<select name="scope">{% for k, v in scopes.items() %}<option value="{{k}}" {{ 'selected' if res.scope == k }}>{{v}}</option>{% endfor %}</select>
+<select name="sort">{% for s in sorts %}<option value="{{s}}" {{ 'selected' if res.sort == s }}>sort: {{s}}</option>{% endfor %}</select>
+<button class="primary">Search</button></div>
+<div class="layout"><aside>
+<div class="card"><strong>Filters</strong>
+<p><label>Year from <input name="year_from" size="5" value="{{p.year_from or ''}}"> to <input name="year_to" size="5" value="{{p.year_to or ''}}"></label></p>
+<p><label>Search within these results <input name="within" value="{{p.within or ''}}" style="width:100%" placeholder="narrow further"></label></p>
+<p><label>Petitioner <input name="petitioner" value="{{p.petitioner or ''}}" style="width:100%"></label></p>
+<p><label>Respondent <input name="respondent" value="{{p.respondent or ''}}" style="width:100%"></label></p>
+<p><label>Case number <input name="case_number" value="{{p.case_number or ''}}" style="width:100%"></label> <span class="note">(no source data: always empty)</span></p>
+<p><label>Identifier <select name="id_type"><option value="">type</option>{% for t in id_types %}<option {{ 'selected' if p.id_type == t }}>{{t}}</option>{% endfor %}</select>
+<input name="id_value" value="{{p.id_value or ''}}" style="width:100%" placeholder="value starts with"></label></p>
+<p>Source: {% for v, l in [('matched','both sources'),('vanga_only','Vanga only'),('in_review','in review')] %}<label><input type="checkbox" name="source" value="{{v}}" {{ 'checked' if v in (p.source or []) }}> {{l}}</label> {% endfor %}</p>
+<p>Text quality: {% for v in ['clean','fair','noisy'] %}<label><input type="checkbox" name="quality" value="{{v}}" {{ 'checked' if v in (p.quality or []) }}> {{v}}</label> {% endfor %}</p>
+<p>Text: {% for v, l in [('english','English'),('translation_only','translation only'),('none','no text')] %}<label><input type="checkbox" name="text_status" value="{{v}}" {{ 'checked' if v in (p.text_status or []) }}> {{l}}</label> {% endfor %}</p>
+<p><label><input type="checkbox" name="incomplete" value="1" {{ 'checked' if p.incomplete == '1' }}> only incomplete text</label></p>
+<p><label>Language available <input name="lang" value="{{ (p.lang or [])|join(',') }}" size="6" placeholder="hin"></label></p>
+<button>Apply</button> <a href="/search">Reset</a></div>
+{% set base = request.url.query %}
+{% for title, key, items in [('Year','year',res.facets.year),('Disposition','disposal',res.facets.disposal),('Bench size (judges listed)','bench',res.facets.bench),('Judge','judge_id',res.facets.judge)] %}
+<div class="card facet"><strong>{{title}}</strong>{% if key == 'year' %}<div class="note">decade view; use the year fields above</div>{% endif %}
+{% if key == 'year' %}{% set dec = {} %}{% for f in items %}{% set d = (f.v // 10 * 10) %}{% if dec.update({d: (dec.get(d, 0) + f.n)}) %}{% endif %}{% endfor %}
+{% for d, n in dec.items()|sort %}<a href="{{ '/search?' + (request.url.query|replace('year_from=','xf=')|replace('year_to=','xt=')) + '&year_from=' + d|string + '&year_to=' + (d + 9)|string }}"><span>{{d}}s</span><span>{{ '{:,}'.format(n) }}</span></a>{% endfor %}
+{% else %}{% for f in items[:12] %}<a href="/search?{{ request.url.query }}&{{key}}={{ (f.v if f.v is not none else '')|string|urlencode }}" class="{{ 'on' if (f.v|string) in (p.get(key) or []) }}"><span>{{ f.label or (f.v if f.v is not none else '(unknown)') }}</span><span>{{ '{:,}'.format(f.n) }}</span></a>{% endfor %}{% endif %}</div>
+{% endfor %}
+<div class="card facet"><strong>Case type</strong><div class="unavailable">unavailable: field not in source data</div></div>
+</aside>
+<section>
+<div class="row"><strong>{{ '{:,}'.format(res.total) }}</strong> judgments{% if res.q %} for “{{res.q}}”{% endif %}
+<span class="grow"></span><a href="/search.csv?{{request.url.query}}">CSV of all results</a></div>
+{% for r in res.rows %}<div class="res">
+<div class="t"><a href="/j/{{r.judgment_id}}">{{ r.title or '(no title)' }}</a></div>
+<div class="note">{{ r.decision_date or r.decision_year }} · {{ r.insc_id or 'no INSC id' }}{% if r.citation %} · {{r.citation}}{% endif %} · {{ r.disposal or 'disposal unknown' }} · {{ r.bench_strength or '?' }} judge(s) listed</div>
+<div>{{ qbadge(r.quality, r.quality_reasons) }}
+{% if r.incomplete %}<span class="badge b-warn" title="The English text has gaps, inconsistent overlaps or offset drift; ranked lower but not hidden.">incomplete text</span>{% endif %}
+{% if r.text_status == 'translation_only' %}<span class="badge b-warn" title="Only non-English text exists for this judgment.">no English text</span>{% elif r.text_status == 'none' %}<span class="badge b-bad" title="No text in either source; metadata only.">no text</span>{% endif %}
+<span class="badge">{{ {'matched':'both sources','vanga_only':'Vanga only','in_review':'in review'}[r.match_status] }}</span></div>
+{% if r.snippet %}<div class="snip">… {{ r.snippet|safe }} …</div>{% endif %}</div>
+{% else %}<p>No judgments match. Try fewer filters or another scope.</p>{% endfor %}
+<div class="pager">{% if res.page > 1 %}<a href="/search?{{ request.url.query|replace('&page=' ~ res.page, '')|replace('page=' ~ res.page, '') }}&page={{res.page-1}}">‹ Prev</a>{% endif %}
+<span>Page {{res.page}} of {{ '{:,}'.format(res.pages) }}</span>
+{% if res.page < res.pages %}<a href="/search?{{ request.url.query|replace('&page=' ~ res.page, '')|replace('page=' ~ res.page, '') }}&page={{res.page+1}}">Next ›</a>{% endif %}</div>
+</section></div></form>
+{% endblock %}

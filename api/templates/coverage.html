@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}Coverage{% endblock %}{% block content %}
+<h1>Coverage dashboard</h1><p class="note">{{ '{:,}'.format(total) }} canonical judgments (Supreme Court of India).</p>
+<h2>Judgments per decision year and source</h2>
+{{ bars(year_bars)|safe }}
+<details><summary>Table</summary><table><tr><th>Year</th><th>Both sources</th><th>Vanga only</th><th>In review</th></tr>{% for y in years %}<tr><td>{{y.year}}</td><td>{{y.matched}}</td><td>{{y.vanga_only}}</td><td>{{y.in_review}}</td></tr>{% endfor %}</table></details>
+<div class="layout" style="grid-template-columns:1fr 1fr">
+<div><h2>Null rate per canonical field</h2><div class="tablewrap"><table><tr><th>Field</th><th>NULL</th><th>%</th></tr>{% for r in null_rows %}<tr><td><code>{{r.field}}</code></td><td>{{ '{:,}'.format(r.nulls) }}</td><td>{{r.pct}}%</td></tr>{% endfor %}</table></div></div>
+<div><h2>Matching, conflicts, queues</h2><table><tr><th>Field conflicts</th><th>Status</th><th>n</th></tr>{% for c in conflicts %}<tr><td>{{c.field_name}}</td><td>{{c.status}}</td><td>{{c.n}}</td></tr>{% else %}<tr><td colspan=3>none</td></tr>{% endfor %}</table>
+<table><tr><th>Match review queue</th><th>Status</th><th>n</th></tr>{% for c in queue %}<tr><td>{{c.kind}}</td><td>{{c.status}}</td><td>{{c.n}}</td></tr>{% else %}<tr><td colspan=3>no ambiguous matches</td></tr>{% endfor %}</table>
+<h2>Text availability</h2><table><tr><th>Status</th><th>Judgments</th></tr>{% for c in text %}<tr><td>{{c.text_status}}</td><td>{{ '{:,}'.format(c.n) }}</td></tr>{% endfor %}</table>
+<h2>Text quality labels</h2><table><tr><th>Texts</th><th>Label</th><th>n</th></tr>{% for c in quality %}<tr><td>{{ 'English' if c.english else 'other languages' }}</td><td>{{c.label}}</td><td>{{ '{:,}'.format(c.n) }}</td></tr>{% endfor %}</table>
+<h2>PDF coverage</h2><p>{{pdf}} PDFs loaded (Stage 10 not started).</p></div></div>{% endblock %}

@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block title %}SQL console{% endblock %}{% block content %}
+<h1>Read-only SQL console</h1><p class="note">One SELECT / WITH / EXPLAIN statement. Runs as the read-only database role, 10 second timeout, 1,000 row cap.</p>
+<form method="post" action="/sql"><textarea name="sql" rows="6" style="width:100%;font-family:monospace">{{sql}}</textarea><p><button class="primary">Run</button></p></form>
+{% if error %}<div class="banner">{{error}}</div>{% endif %}
+{% if result %}<p class="note">{{result.rows|length}} row(s){{ ' (capped at 1,000)' if result.capped }} in {{ms}} ms</p><div class="tablewrap"><table><tr>{% for n in result.names %}<th>{{n}}</th>{% endfor %}</tr>{% for r in result.rows %}<tr>{% for n in result.names %}<td>{{ r[n]|fmt if r[n] is not none else 'NULL' }}</td>{% endfor %}</tr>{% endfor %}</table></div>{% endif %}{% endblock %}

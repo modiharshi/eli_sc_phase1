@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}{{table}}{% endblock %}{% block content %}
+<h1><a href="/explorer">Explorer</a> / {{table}}</h1>
+<p class="note">{{ '{:,}'.format(total) }} row(s){{ '' if exact else ' (estimate)' }}. Type in a column box to filter (contains, case-insensitive); click a header to sort. Long values are cut at 300 characters unless “full values” is on.</p>
+<form method="get"><input type="hidden" name="full" value="{{full}}">
+<div class="tablewrap"><table><tr>{% for c in cols %}<th><a href="?{% for k, v in p.items() if k not in ('sort','dir','page') %}{{k}}={{v|urlencode}}&{% endfor %}sort={{c.name}}&dir={{ 'desc' if p.get('sort') == c.name and p.get('dir') != 'desc' else 'asc' }}">{{c.name}}</a><div class="note">{{c.type}}</div>
+<input name="f_{{c.name}}" value="{{ p.get('f_' ~ c.name, '') }}" size="8"></th>{% endfor %}</tr>
+{% for r in rows %}<tr>{% for c in cols %}{% set v = r[c.name] %}<td>{% if v is none %}<span class="note">NULL</span>{% else %}{% set s = v|fmt %}{{ s if full or s|length <= 300 else s[:300] ~ '…' }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</table></div>
+<div class="pager"><button>Apply filters</button> {% if page > 1 %}<a href="?{% for k, v in p.items() if k != 'page' %}{{k}}={{v|urlencode}}&{% endfor %}page={{page-1}}">‹ Prev</a>{% endif %}
+<span>Page {{page}}</span>{% if page * size < total %}<a href="?{% for k, v in p.items() if k != 'page' %}{{k}}={{v|urlencode}}&{% endfor %}page={{page+1}}">Next ›</a>{% endif %}
+<a href="?{% for k, v in p.items() if k != 'full' %}{{k}}={{v|urlencode}}&{% endfor %}full={{ 0 if full else 1 }}">{{ 'truncate values' if full else 'full values' }}</a>
+<a href="/explorer/{{table}}.csv?{{ request.url.query }}">CSV (first 100,000 rows)</a></div></form>{% endblock %}

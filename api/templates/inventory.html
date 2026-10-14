@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Feature inventory{% endblock %}{% block content %}
+<h1>Feature inventory</h1><p class="note">An honest list. “built” means working and tested; “partial” has a stated limit; “unavailable” means the field is not in the source data; “not built” has not been started.</p>
+<table><tr><th>Area</th><th>What</th><th>Status</th></tr>{% for a, w, s, l in features %}<tr><td>{% if l %}<a href="{{l}}">{{a}}</a>{% else %}{{a}}{% endif %}</td><td>{{w}}</td><td><span class="badge b-{{ {'built':'ok','partial':'warn','unavailable':'bad','not built':''}[s] }}">{{s}}</span></td></tr>{% endfor %}</table>
+<h2>Database objects (live)</h2><p>Extensions: {% for e in exts %}<code>{{e.extname}} {{e.extversion}}</code> {% endfor %}. Pipeline stages recorded: {{ runs|map(attribute='stage')|join(', ') }}.</p>
+<details><summary>{{rels|length}} tables / views</summary><table>{% for r in rels %}<tr><td><a href="/explorer/{{r.name}}">{{r.name}}</a></td><td>{{r.kind}}</td><td>{{r.size}}</td></tr>{% endfor %}</table></details>
+<details><summary>{{idx|length}} indexes</summary><table>{% for i in idx %}<tr><td>{{i.tablename}}</td><td>{{i.indexname}}</td><td>{{i.size}}</td></tr>{% endfor %}</table></details>{% endblock %}

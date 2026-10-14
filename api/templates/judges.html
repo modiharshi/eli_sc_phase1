@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block title %}Judges{% endblock %}{% block content %}
+<h1>Judges</h1><form method="get" class="row"><input name="q" value="{{q}}" placeholder="search by any spelling"><button>Search</button></form>
+<p class="note">Spelling variants (spacing and full stops) map to one person through the alias table. Different people with a shared surname are kept apart.</p>
+<div class="tablewrap"><table><tr><th>Judge</th><th>Judgments</th><th>Active</th></tr>{% for r in rows %}<tr><td><a href="/judge/{{r.judge_id}}">{{r.canonical_name}}</a></td><td>{{ '{:,}'.format(r.n) }}</td><td>{{r.first_year}}–{{r.last_year}}</td></tr>{% endfor %}</table></div>{% endblock %}

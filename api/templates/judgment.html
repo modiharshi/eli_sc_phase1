@@ -1,0 +1,72 @@
+{% extends "base.html" %}{% from "base.html" import qbadge %}{% block title %}{{ j.title or 'Judgment' }}{% endblock %}{% block content %}
+<h1>{{ j.title or '(no title)' }}</h1>
+<div class="banner"><strong>{{ NOT_OFFICIAL }}</strong> Data from two open datasets; fields may be wrong. Use “Report an error” next to any field.</div>
+<div class="row"><span class="note">{{ j.decision_date or j.decision_year }} · {{ j.insc_id or 'no INSC id' }}</span>
+{{ qbadge(badge, (langs|selectattr('language_code','equalto','en')|first).reasons if en else None) }}
+{% if incomplete %}<span class="badge b-warn" title="English text has gaps / inconsistent overlaps / offset drift ({{ en.incompleteness_reason }}). It is shown as delivered and ranked lower in search.">incomplete text</span>{% endif %}
+{% if j.text_status == 'translation_only' %}<span class="badge b-warn">no English text</span>{% elif j.text_status == 'none' %}<span class="badge b-bad">no text in either source</span>{% endif %}
+{% for l in other_labels %}<span class="badge b-noisy" title="{{ l.reasons|join(', ') }}">{{l.language_code}} text: noisy</span>{% endfor %}
+<span class="grow"></span>
+<button type="button" data-copy="{{ j.insc_id or '' }}" {{ 'disabled' if not j.insc_id }}>Copy INSC id</button>
+<button type="button" data-copy="{{ j.citation or '' }}" {{ 'disabled' if not j.citation }}>Copy SCR citation</button>
+<button type="button" data-copy="{{ j.title }}{% if j.decision_year %} ({{ j.decision_year }}){% endif %}{% if j.citation %} {{ j.citation }}{% endif %}{% if j.insc_id %}, {{ j.insc_id }}{% endif %} (Supreme Court of India)">Copy formatted citation</button>
+<button type="button" data-copy="" data-copy-url="/j/{{ j.judgment_id }}">Copy permalink</button>
+{% if j.insc_id %}<button type="button" data-copy="" data-copy-url="/insc/{{ j.insc_id|replace(' ','-') }}">Copy INSC permalink</button>{% endif %}
+</div>
+<div class="row note">Export (English text): <a href="/j/{{ j.judgment_id }}/export.docx">Word</a> · <a href="/j/{{ j.judgment_id }}/export.pdf">PDF</a> · <a href="/j/{{ j.judgment_id }}/export.txt">text</a></div>
+<div class="tabs">{% for k, label in tabs %}<a class="{{ 'on' if tab == k }}" href="/j/{{ j.judgment_id }}?tab={{k}}">{{label}}</a>{% endfor %}</div>
+
+{% if tab == 'overview' %}
+{% if request.query_params.get('reported') %}<div class="banner">Thanks — your report on “{{ request.query_params.get('reported') }}” was added to the review queue.</div>{% endif %}
+<div class="tablewrap"><table><tr><th>Field</th><th>Value</th><th>Source</th><th></th></tr>
+{% for k, v in fields %}{% set pv = prov.get(k) %}{% set cf = conflicts.get(k) %}
+<tr><td><code>{{k}}</code></td>
+<td>{% if v is none %}<span class="note">NULL{% if k in ['case_number','diary_number','pdf_url','date_of_registration','case_type','bench'] %} — no source field{% endif %}</span>{% else %}{{ v|fmt }}{% endif %}
+{% if cf %}<br><span class="badge b-warn">sources disagree</span> <span class="note">Vanga: {{cf.vanga_value}} · Vaquill: {{cf.vaquill_value}} · {{cf.resolution}}</span>{% endif %}
+{% if pv and pv.alt_value and pv.alt_value != pv.chosen_value %}<br><span class="note">other source: {{pv.alt_value}}</span>{% endif %}</td>
+<td>{% if pv %}<span class="badge">{{pv.chosen_source}}</span>{% else %}<span class="badge">derived / Vanga</span>{% endif %}</td>
+<td><details><summary>Report an error</summary><form method="post" action="/j/{{ j.judgment_id }}/report">
+<input type="hidden" name="field_name" value="{{k}}"><input name="suggested_value" placeholder="correct value"><input name="comment" placeholder="comment"><button>Send</button></form></details></td></tr>{% endfor %}</table></div>
+{% if smap %}<h3>Source map</h3><p class="note">match method <code>{{smap.match_method}}</code>, confidence {{smap.match_confidence}}, Vanga path <code>{{smap.vanga_path}}</code>, Vaquill case <code>{{smap.vaquill_case_id or '—'}}</code></p>{% endif %}
+<h3>Languages</h3><table><tr><th>Language</th><th>PDF listed (Vanga)</th><th>Text (Vaquill)</th><th>Chunks</th><th>Characters</th><th>Quality</th><th>Complete</th></tr>
+{% for l in langs %}<tr><td>{{l.language_code}}</td><td>{{ 'yes' if l.pdf_listed else 'no' }}</td><td>{{ 'yes' if l.text_available else 'no' }}</td><td>{{l.text_chunks}}/{{l.expected_chunks}}</td><td>{{ l.char_length }}</td><td>{{ qbadge(l.label, l.reasons) }}</td><td>{{ l.incompleteness_reason or '' }}</td></tr>{% endfor %}</table>
+
+{% elif tab == 'text' %}
+<form method="get" class="row"><input type="hidden" name="tab" value="text"><select name="lang">{% for l in langs if l.text_available %}<option {{ 'selected' if l.language_code == lang }}>{{l.language_code}}</option>{% endfor %}</select>
+<input name="find" value="{{find}}" placeholder="search within this judgment"><label><input type="checkbox" name="boundaries" value="1" {{ 'checked' if boundaries }}> chunk boundaries and pages</label><button>Go</button></form>
+{% if body is none %}<div class="unavailable">No {{lang}} text for this judgment. {% if j.text_status != 'english' %}Status: <code>{{j.text_status}}</code>.{% endif %}</div>
+{% else %}{% if find %}<p class="note">{{ hits }} hit(s) for “{{find}}”.</p>{% endif %}<div class="fulltext">{{ body|safe }}</div>{% endif %}
+
+{% elif tab == 'chunks' %}
+<p class="note">{{n}} chunk(s) in language {{lang}}. Raw Vaquill chunk rows, all columns (the header line is kept here, stripped only in the assembled text).</p>
+{% for c in chunks %}<details><summary>chunk {{c.chunk_index}} · chars {{c.char_start}}–{{c.char_end}} · pages {{c.page_start}}–{{c.page_end}} · {{c.section_type}}</summary>
+<table>{% for k, v in c.items() if k != 'text' %}<tr><td><code>{{k}}</code></td><td>{{ v|fmt }}</td></tr>{% endfor %}</table><pre>{{ c.text }}</pre></details>{% endfor %}
+<div class="pager">{% if page > 1 %}<a href="?tab=chunks&lang={{lang}}&page={{page-1}}">‹ Prev</a>{% endif %}{% if page * 25 < n %}<a href="?tab=chunks&lang={{lang}}&page={{page+1}}">Next ›</a>{% endif %}</div>
+
+{% elif tab == 'raw_vanga' %}
+{% for r in raws %}<h3>Vanga row, folder year={{r.year_folder}} {{ '(canonical copy)' if r.is_canonical_copy else '(misfiled duplicate: ' ~ r.dedupe_reason ~ ')' }}</h3><pre>{{ r.raw|pretty }}</pre>{% else %}<p>No raw Vanga row.</p>{% endfor %}
+
+{% elif tab == 'raw_vaquill' %}
+{% if raw_vq %}<p class="note">{{raw_vq.chunk_row_count}} chunk rows, languages {{raw_vq.languages|fmt}}</p><pre>{{ raw_vq.raw|pretty }}</pre>{% else %}<div class="unavailable">This judgment was not matched to a Vaquill case (Vanga only).</div>{% endif %}
+
+{% elif tab == 'identifiers' %}
+<table><tr><th>Type</th><th>Value</th><th>Source</th></tr>{% for i in ids %}<tr><td>{{i.identifier_type}}</td><td>{{i.value}}</td><td>{{i.source}}</td></tr>{% endfor %}</table>
+<p class="note">SCC and AIR citations are not in either source; none are shown or invented.</p>
+
+{% elif tab == 'judges' %}
+<table><tr><th>#</th><th>Judge</th><th>Raw name</th><th>Source</th><th>Author</th></tr>{% for g in judges %}<tr><td>{{g.position}}</td><td><a href="/judge/{{g.judge_id}}">{{g.judge_name_norm}}</a></td><td>{{g.judge_name_raw}}</td><td>{{g.source}}</td><td>{{ 'unavailable: not in source data' if g.is_author is none else g.is_author }}</td></tr>{% endfor %}</table>
+<p class="note">The sources list the judges named in their record; for many older judgments that is only one name, not the whole bench.</p>
+{% if bench %}<div class="card"><strong>Bench size from the text header: {{ bench.judges_in_header }}</strong> <span class="badge b-warn">estimate</span> ({{ bench.method }})<br><code>{{ bench.header }}</code></div>{% else %}<p class="note">No bench header could be read from the English text.</p>{% endif %}
+
+{% elif tab == 'provenance' %}
+<h3>Chosen value per field</h3><table><tr><th>Field</th><th>Source</th><th>Value</th><th>Other source</th><th>Reason</th></tr>{% for r in prov %}<tr><td>{{r.field_name}}</td><td>{{r.chosen_source}}</td><td>{{r.chosen_value}}</td><td>{{r.alt_value}}</td><td>{{r.reason}}</td></tr>{% endfor %}</table>
+<h3>Conflicts</h3>{% if conflicts %}<table><tr><th>Field</th><th>Vanga</th><th>Vaquill</th><th>Resolution</th><th>Status</th></tr>{% for c in conflicts %}<tr><td>{{c.field_name}}</td><td>{{c.vanga_value}}</td><td>{{c.vaquill_value}}</td><td>{{c.resolution}}</td><td>{{c.status}}</td></tr>{% endfor %}</table>{% else %}<p>No source disagreements recorded for this judgment.</p>{% endif %}
+
+{% elif tab == 'pdf' %}
+<div class="unavailable"><strong>Original PDF: not loaded yet.</strong><p>PDFs are Stage 10 and need your approval. Vanga lists these PDF languages for this judgment: {{ j.available_languages|fmt }}. {% if j.pdf_url %}<a href="{{j.pdf_url}}">{{j.pdf_url}}</a>{% else %}The source data has no PDF URL field (DECISIONS.md D3).{% endif %}</p></div>
+
+{% elif tab == 'later' %}
+{% for name, n in [('Numbered paragraphs','judgment_paragraph'),('Citations made / cited by','citation_mention'),('Statutes mentioned','judgment_statute')] %}
+<div class="unavailable"><strong>{{name}}: not built yet.</strong> The table exists and is empty ({{ counts.get(n, 0) }} rows for this judgment). Out of scope for this phase.</div><br>{% endfor %}
+{% endif %}
+{% endblock %}

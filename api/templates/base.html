@@ -1,0 +1,15 @@
+{% macro qbadge(label, reasons=None) -%}
+{% if label %}<span class="badge b-{{label}}" title="{{ QUALITY_HELP[label] }}{% if reasons %} Reasons: {{ reasons|join(', ') }}.{% endif %}">text: {{label}}</span>{% endif %}
+{%- endmacro %}
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}ELI{% endblock %} · ELI</title><link rel="stylesheet" href="/static/style.css">
+<script>try{var t=localStorage.getItem('eli-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script></head>
+<body>
+<header><div class="top"><a class="brand" href="/search">ELI <span class="note">Supreme Court of India · beta</span></a>
+<nav>{% for label, href in nav %}<a href="{{href}}" class="{{ 'on' if path.startswith(href) else '' }}">{{label}}</a>{% endfor %}</nav>
+<button type="button" onclick="var d=document.documentElement,n=(d.dataset.theme==='dark')?'light':'dark';d.dataset.theme=n;try{localStorage.setItem('eli-theme',n)}catch(e){}" title="Toggle dark mode">◐</button>
+{% if user %}<form method="post" action="/logout" class="row"><span class="note">{{user.username}} ({{user.role}})</span><button>Log out</button></form>{% endif %}</div></header>
+<main>{% block content %}{% endblock %}</main>
+<footer><div>{{ ATTRIBUTION }}</div><div><strong>{{ NOT_OFFICIAL }}</strong> Beta; may contain errors. Licence notes: docs/LICENCES.md.</div></footer>
+<script src="/static/app.js"></script></body></html>

@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}{{jd.canonical_name}}{% endblock %}{% block content %}
+<h1>{{jd.canonical_name}}</h1><p class="note">Names seen: {{ aliases|join(' · ') }}. {{ '{:,}'.format(total) }} judgments where the source lists this judge.</p>
+<div class="layout" style="grid-template-columns:1fr 1fr"><div><h2>Judgments per year</h2>{{ bars(years)|safe }}</div>
+<div><h2>Outcome mix</h2>{{ bars(outcomes)|safe }}<h2>Sat most often with</h2><table>{% for c in companions %}<tr><td><a href="/judge/{{c.judge_id}}">{{c.label}}</a></td><td>{{c.n}}</td></tr>{% endfor %}</table>
+<h2>Authored</h2><div class="unavailable">unavailable: the sources do not say who wrote each judgment ({{authored}} rows marked).</div></div></div>
+<h2>Judgments</h2><table><tr><th>Date</th><th>Title</th><th>Judges listed</th><th>Disposal</th></tr>{% for r in rows %}<tr><td>{{r.decision_date}}</td><td><a href="/j/{{r.judgment_id}}">{{r.title}}</a></td><td>{{r.bench_strength}}</td><td>{{r.disposal}}</td></tr>{% endfor %}</table>
+<div class="pager">{% if page > 1 %}<a href="?page={{page-1}}">‹ Prev</a>{% endif %}{% if page * size < total %}<a href="?page={{page+1}}">Next ›</a>{% endif %}</div>{% endblock %}

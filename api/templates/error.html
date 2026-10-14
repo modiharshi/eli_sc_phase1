@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% block title %}Error {{code}}{% endblock %}{% block content %}
+<h1>{{code}}: {{ 'Not found' if code == 404 else 'Something went wrong' }}</h1><div class="banner">{{message}}</div><p><a href="/search">Back to search</a></p>{% endblock %}
