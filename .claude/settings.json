@@ -5,6 +5,6 @@
       "autoUpdate": false
     }
   },
-  "enabledPlugins": { "ponytail@ponytail": false },
+  "enabledPlugins": { "ponytail@ponytail": true },
   "env": { "PONYTAIL_DEFAULT_MODE": "off", "PONYTAIL_MAP": "0" }
 }
